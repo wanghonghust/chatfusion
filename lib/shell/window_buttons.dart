@@ -20,6 +20,17 @@ class _WindowButtonsState extends State<WindowButtons> {
     });
   }
 
+  void minimize() {
+    setState(() {
+      appWindow.minimize();
+    });
+  }
+  void close() {
+    setState(() {
+      appWindow.close();
+    });
+  }
+
   @override
   void didChangeDependencies() {
     themeNotifier = Provider.of<ThemeNotifier>(context);
@@ -32,10 +43,14 @@ class _WindowButtonsState extends State<WindowButtons> {
     final buttonColors = WindowButtonColors(
       iconNormal: themeNotifier!.isDarkMode ? Colors.white : Colors.black,
       iconMouseDown: themeNotifier!.isDarkMode ? Colors.white : Colors.black,
-      iconMouseOver:themeNotifier!.isDarkMode ? Colors.white : Colors.black,
+      iconMouseOver: themeNotifier!.isDarkMode ? Colors.white : Colors.black,
       normal: Colors.transparent,
-      mouseOver: themeNotifier!.isDarkMode ? Colors.white.withAlpha(20) : Colors.black.withAlpha(20),
-      mouseDown: themeNotifier!.isDarkMode ? Colors.white.withAlpha(40): Colors.black.withAlpha(40),
+      mouseOver: themeNotifier!.isDarkMode
+          ? Colors.white.withAlpha(20)
+          : Colors.black.withAlpha(20),
+      mouseDown: themeNotifier!.isDarkMode
+          ? Colors.white.withAlpha(40)
+          : Colors.black.withAlpha(40),
     );
 
     final closeButtonColors = WindowButtonColors(
@@ -46,26 +61,29 @@ class _WindowButtonsState extends State<WindowButtons> {
           brightness == Brightness.light ? Colors.black : Colors.white,
       normal: Colors.transparent,
       mouseOver: brightness == Brightness.light ? Colors.red : Colors.red,
-      mouseDown:
-          brightness == Brightness.light ? Colors.red : Colors.red,
+      mouseDown: brightness == Brightness.light ? Colors.red : Colors.red,
     );
     return Row(
       children: [
-        MinimizeWindowButton(
-          colors: buttonColors,
+        IconButton.ghost(
+          onPressed: minimize,
+          density: ButtonDensity.icon,
+          icon: const Icon(RadixIcons.minus),
         ),
         appWindow.isMaximized
-            ? RestoreWindowButton(
-                colors: buttonColors,
+            ? IconButton.ghost(
                 onPressed: maximizeOrRestore,
+                density: ButtonDensity.icon,
+                icon: const Icon(RadixIcons.exitFullScreen),
               )
-            : MaximizeWindowButton(
-                colors: buttonColors,
+            : IconButton.ghost(
                 onPressed: maximizeOrRestore,
-              ),
-        CloseWindowButton(
-          colors: closeButtonColors,
-        ),
+                density: ButtonDensity.icon,
+                icon: const Icon(RadixIcons.enterFullScreen)),
+        IconButton.ghost(
+            onPressed: close,
+            density: ButtonDensity.icon,
+            icon: const Icon(RadixIcons.cross2)),
       ],
     );
   }

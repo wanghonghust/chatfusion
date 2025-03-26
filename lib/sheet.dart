@@ -58,11 +58,16 @@ class _SheetPageState extends State<SheetPage> {
 
   @override
   Widget build(BuildContext context) {
-    return PrimaryButton(
-      onPressed: () {
-        open(context, 0);
-      },
-      child: const Text('Open Drawer'),
-    );
+    return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          PrimaryButton(
+            onPressed: () {
+              open(context, 0);
+            },
+            child: const Text('Open Drawer'),
+          )
+        ]);
   }
 }

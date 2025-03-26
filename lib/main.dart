@@ -35,7 +35,6 @@ Future<void> main() async {
     doWhenWindowReady(() {
       appWindow
         ..minSize = Size(400, 360)
-        ..size = Size(1000, 540)
         ..alignment = Alignment.center
         ..show();
     });
@@ -50,15 +49,22 @@ class ChatfusionApp extends StatefulWidget {
 }
 
 class _ChatfusionAppState extends State<ChatfusionApp> {
+  late GoRouter router;
+  @override
+  void initState() {
+    super.initState();
+    router = GoRouter(routes: routes, initialLocation: '/');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
-      return ShadcnApp(
+      return ShadcnApp.router(
+        routerConfig: router,
         debugShowCheckedModeBanner: false,
         theme: themeNotifier.currentTheme,
         darkTheme: darkTheme,
         themeMode: themeNotifier.themeMode,
-        home: AppShell(body: TreePage()),
       );
     });
   }

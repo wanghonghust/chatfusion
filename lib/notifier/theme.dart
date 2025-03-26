@@ -6,7 +6,7 @@ import 'package:flutter_acrylic/window.dart' as faw;
 import 'package:flutter_acrylic/window_effect.dart';
 
 class ThemeNotifier with ChangeNotifier {
-  final ThemeData _currentTheme;
+  ThemeData _currentTheme;
   BuildContext context;
   ThemeMode _themeMode;
   WindowEffect _effect = WindowEffect.mica;
@@ -18,7 +18,6 @@ class ThemeNotifier with ChangeNotifier {
   WindowEffect get effect => _effect;
   bool get isDesktop =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
-
 
   void init() {
     faw.Window.setEffect(
@@ -52,10 +51,16 @@ class ThemeNotifier with ChangeNotifier {
     }
     return _themeMode == ThemeMode.dark;
   }
+
+  bool setColorScheme(ColorScheme colorScheme) {
+    _currentTheme = _currentTheme.copyWith(colorScheme: colorScheme);
+    notifyListeners();
+    return true;
+  }
 }
 
 var lightTheme = ThemeData(
-  colorScheme: ColorSchemes.rose(ThemeMode.light),
+  colorScheme: ColorSchemes.lightGreen(),
   radius: 0.5,
 );
 
@@ -63,3 +68,4 @@ var darkTheme = ThemeData(
   colorScheme: ColorSchemes.darkRose(),
   radius: 0.5,
 );
+
