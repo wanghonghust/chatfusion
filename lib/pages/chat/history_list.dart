@@ -46,13 +46,13 @@ class _HistoryListState extends State<HistoryList> {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             TextButton(
-              size: ButtonSize.small,
+              size: ButtonSize.xSmall,
               onPressed: widget.onNewConversation,
               trailing: const Icon(BootstrapIcons.plus),
               child: const Text(
                 '新建对话',
                 style: TextStyle(
-                  fontSize: 16,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
                   overflow: TextOverflow.ellipsis,
                 ),

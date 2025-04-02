@@ -77,6 +77,7 @@ class _ApiKeySettingsPageState extends State<ApiKeySettingsPage> {
           FormErrorBuilder(
             builder: (context, errors, child) {
               return PrimaryButton(
+                size: ButtonSize.small,
                 onPressed: errors.isEmpty ? () => context.submitForm() : null,
                 child: const Text('保存'),
               );
@@ -103,7 +104,7 @@ class _ApiKeySettingsPageState extends State<ApiKeySettingsPage> {
 void showApiKeyDialog(BuildContext context, {Function(bool)? onEnd}) {
   showCusDialog(
     context,
-    icon: Icon(BootstrapIcons.key),
+    icon: Icon(BootstrapIcons.tools),
     title: Text("API KEY 配置"),
     child: ApiKeySettingsPage(
       onEnd: onEnd,

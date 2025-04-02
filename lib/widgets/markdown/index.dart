@@ -1,6 +1,7 @@
 import 'package:chatfusion/widgets/markdown/element_builder.dart';
+import 'package:chatfusion/widgets/markdown/flutter_markdown/src/style_sheet.dart';
+import 'package:chatfusion/widgets/markdown/flutter_markdown/src/widget.dart';
 import 'package:flutter/material.dart' show InkWell, MaterialTextSelectionControls;
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:easy_image_viewer/easy_image_viewer.dart';
@@ -21,15 +22,6 @@ class _MarkdownPageState extends State<MarkdownWidget>
   Widget build(BuildContext context) {
     super.build(context);
     return SelectableRegion(
-      // contextMenuBuilder: (context, selectableRegionState) {
-      //   return Column(
-      //     children:[
-      //       MenuLabel(child: Text('My Account')),
-      //       MenuLabel(child: Text('My Account')),
-      //       MenuLabel(child: Text('My Account')),
-      //     ]
-      //   );
-      // },
         focusNode: FocusNode(),
         selectionControls: materialTextControls,
         child: Markdown(
@@ -65,8 +57,8 @@ class _MarkdownPageState extends State<MarkdownWidget>
                         color: Theme.of(context).colorScheme.primary, width: 4)),
                 borderRadius: const BorderRadius.all(Radius.circular(4))),
           ),
+          styleSheetTheme: MarkdownStyleSheetBaseTheme.platform,
           builders: {
-            // 'pre': PreElementBuilder(context: context),
             'code': CodeElementBuilder(context: context)
           },
         ));

@@ -44,6 +44,17 @@ class _SettingsPageState extends State<SettingsPage> {
   void didChangeDependencies() {
     super.didChangeDependencies();
     settingsNotifier = Provider.of<SettingsNotifier>(context, listen: true);
+    switch (settingsNotifier!.themeMode) {
+      case ThemeMode.light:
+        _index = 0;
+        break;
+      case ThemeMode.dark:
+        _index = 1;
+        break;
+      case ThemeMode.system:
+        _index = 2;
+        break;
+    }
   }
 
   @override

@@ -1,7 +1,7 @@
 import 'dart:ui';
 
+import 'package:chatfusion/widgets/markdown/flutter_markdown/src/widget.dart';
 import 'package:chatfusion/widgets/markdown/highlight_view.dart';
-import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:markdown/markdown.dart' as md;
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -21,6 +21,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
             ? blockLightTheme
             : blockDarkTheme,
         padding: const EdgeInsets.all(2),
+        textStyle: Theme.of(context).typography.semiBold.copyWith(fontSize: 14),
       );
     }
     return Row(children: [
@@ -32,6 +33,7 @@ class CodeElementBuilder extends MarkdownElementBuilder {
             ? atomOneLightTheme
             : atomOneDarkTheme,
         padding: const EdgeInsets.all(2),
+        textStyle: Theme.of(context).typography.semiBold.copyWith(fontSize: 14),
       ))
     ]);
   }

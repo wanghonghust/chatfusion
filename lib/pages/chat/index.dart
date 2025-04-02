@@ -94,6 +94,7 @@ class _ChatPageState extends State<ChatPage> {
                     showDuration: Duration(seconds: 2),
                     builder: (context, overlay) {
                       return SurfaceCard(
+                        borderColor: Theme.of(context).colorScheme.primary,
                         child: Basic(
                           leading: Icon(BootstrapIcons.info),
                           title: const Text('已在新对话中'),
@@ -255,6 +256,7 @@ class _ChatPageState extends State<ChatPage> {
           showDuration: Duration(seconds: 2),
           builder: (context, overlay) {
             return SurfaceCard(
+              borderColor: Theme.of(context).colorScheme.primary,
               child: Basic(
                 leading: Icon(BootstrapIcons.exclamationCircle),
                 content: Text("请选择模型并输入内容"),

@@ -155,13 +155,34 @@ class _ChatInputState extends State<ChatInput> {
                         InputFeature.trailing(
                           Align(
                             alignment: Alignment.bottomCenter,
-                            child: IconButton.outline(
+                            child: Button(
                               onPressed: sendMessage,
-                              shape: ButtonShape.circle,
-                              icon: Icon(
-                                widget.done
-                                    ? BootstrapIcons.sendFill
-                                    : BootstrapIcons.stopFill,
+                              style: ButtonStyle.outlineIcon(
+                                shape: ButtonShape.circle,
+                              ).withBorder(
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                              ),
+                              child: RepeatedAnimationBuilder<double>(
+                                start: 0.8,
+                                end: 1,
+                                duration: const Duration(milliseconds: 1200),
+                                reverseDuration:
+                                    const Duration(milliseconds: 1200),
+                                mode: RepeatMode.pingPongReverse,
+                                builder: (context, value, child) {
+                                  return Transform.scale(
+                                    scale: value,
+                                    child: Icon(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                      widget.done
+                                          ? BootstrapIcons.fastForwardFill
+                                          : BootstrapIcons.stopFill,
+                                    ),
+                                  );
+                                },
                               ),
                             ),
                           ),
