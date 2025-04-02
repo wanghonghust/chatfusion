@@ -60,29 +60,30 @@ class _NavBarState extends State<NavBar> {
     final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Expanded(
-            child: Row(
-          children: [
-            NavigationRail(
-              backgroundColor: theme.colorScheme.card,
-              labelType: widget.expanded!
-                  ? NavigationLabelType.expanded
-                  : NavigationLabelType.tooltip,
-              labelPosition: NavigationLabelPosition.end,
-              alignment: NavigationRailAlignment.start,
-              labelSize: NavigationLabelSize.large,
-              expanded: widget.expanded!,
-              index: widget.selected,
-              onSelected: (value) {
-                if (widget.onSelected != null) {
-                  widget.onSelected!(value);
-                }
-              },
-              children: _buildItems(),
-            ),
-            VerticalDivider()
-          ],
+            child: Container(
+          width: widget.isDrawer! ? 150 : null,
+          alignment: Alignment.topLeft,
+          margin: widget.isDrawer! ? EdgeInsets.zero : EdgeInsets.all(0),
+          child: NavigationRail(
+            backgroundColor: theme.colorScheme.card,
+            labelType: widget.expanded!
+                ? NavigationLabelType.expanded
+                : NavigationLabelType.tooltip,
+            labelPosition: NavigationLabelPosition.end,
+            alignment: NavigationRailAlignment.start,
+            labelSize: NavigationLabelSize.large,
+            expanded: widget.expanded!,
+            index: widget.selected,
+            onSelected: (value) {
+              if (widget.onSelected != null) {
+                widget.onSelected!(value);
+              }
+            },
+            children: _buildItems(),
+          ),
         )),
       ],
     );

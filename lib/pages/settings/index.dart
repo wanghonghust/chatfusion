@@ -1,4 +1,4 @@
-import 'package:chatfusion/notifier/theme.dart';
+import 'package:chatfusion/notifier/settings.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -37,13 +37,13 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
-  ThemeNotifier? themeNotifier;
+  SettingsNotifier? settingsNotifier;
   int _index = 0;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    themeNotifier = Provider.of<ThemeNotifier>(context, listen: true);
+    settingsNotifier = Provider.of<SettingsNotifier>(context, listen: true);
   }
 
   @override
@@ -53,6 +53,10 @@ class _SettingsPageState extends State<SettingsPage> {
       height: 0.6 * height,
       child: ListView(
         children: [
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: const Text('主题设置'),
+          ),
           Tabs(
               index: _index,
               onChanged: (index) {
@@ -61,13 +65,13 @@ class _SettingsPageState extends State<SettingsPage> {
                 });
                 switch (index) {
                   case 0:
-                    themeNotifier!.setTheme(ThemeMode.light);
+                    settingsNotifier!.setTheme(ThemeMode.light);
                     break;
                   case 1:
-                    themeNotifier!.setTheme(ThemeMode.dark);
+                    settingsNotifier!.setTheme(ThemeMode.dark);
                     break;
                   case 2:
-                    themeNotifier!.setTheme(ThemeMode.system);
+                    settingsNotifier!.setTheme(ThemeMode.system);
                 }
               },
               children: [
@@ -81,6 +85,37 @@ class _SettingsPageState extends State<SettingsPage> {
             children:
                 colorSchemes.keys.map(buildPremadeColorSchemeButton).toList(),
           ).p(),
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 10),
+            child: const Text('语言设置'),
+          ),
+          RadioGroup<Locale>(
+            value: settingsNotifier!.language,
+            onChanged: (value) {
+              settingsNotifier!.setLanguage(value);
+            },
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                RadioCard<Locale>(
+                  value: Locale('zh', 'CN'),
+                  child: Basic(
+                    padding: EdgeInsets.all(5),
+                    title: Text('中国'),
+                    content: Text('简体中文'),
+                  ),
+                ),
+                RadioCard<Locale>(
+                  value: Locale('en', 'US'),
+                  child: Basic(
+                    padding: EdgeInsets.all(5),
+                    title: Text('The United States of America'),
+                    content: Text('English'),
+                  ),
+                ),
+              ],
+            ).gap(12),
+          )
         ],
       ),
     );
@@ -88,10 +123,15 @@ class _SettingsPageState extends State<SettingsPage> {
 
   Widget buildPremadeColorSchemeButton(String name) {
     var scheme = colorSchemes[name]!;
-    return scheme == themeNotifier!.currentTheme.colorScheme
+    return scheme == settingsNotifier!.currentTheme.colorScheme
         ? PrimaryButton(
             onPressed: () {
-              themeNotifier!.setColorScheme(scheme);
+              if (name.contains("light")) {
+                settingsNotifier!.setTheme(ThemeMode.light);
+              } else {
+                settingsNotifier!.setTheme(ThemeMode.dark);
+              }
+              settingsNotifier!.setColorScheme(scheme);
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -116,7 +156,12 @@ class _SettingsPageState extends State<SettingsPage> {
           )
         : OutlineButton(
             onPressed: () {
-              themeNotifier!.setColorScheme(scheme);
+              if (name.contains("light")) {
+                settingsNotifier!.setTheme(ThemeMode.light);
+              } else {
+                settingsNotifier!.setTheme(ThemeMode.dark);
+              }
+              settingsNotifier!.setColorScheme(scheme);
             },
             child: Row(
               mainAxisSize: MainAxisSize.min,

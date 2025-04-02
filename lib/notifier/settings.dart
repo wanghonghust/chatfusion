@@ -1,23 +1,31 @@
 import 'dart:io';
 import 'dart:ui';
 
+import 'package:easy_localization/easy_localization.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:flutter_acrylic/window.dart' as faw;
 import 'package:flutter_acrylic/window_effect.dart';
 
-class ThemeNotifier with ChangeNotifier {
+class SettingsNotifier with ChangeNotifier {
   ThemeData _currentTheme;
   BuildContext context;
   ThemeMode _themeMode;
   WindowEffect _effect = WindowEffect.mica;
+  Locale _language = Locale('zh', 'CN');
 
-  ThemeNotifier(this._currentTheme, this.context, this._themeMode);
+  SettingsNotifier(
+    this._currentTheme,
+    this.context,
+    this._themeMode,
+    this._language,
+  );
 
   ThemeData get currentTheme => _currentTheme;
   ThemeMode get themeMode => _themeMode;
   WindowEffect get effect => _effect;
   bool get isDesktop =>
       Platform.isWindows || Platform.isMacOS || Platform.isLinux;
+  Locale get language => _language;
 
   void init() {
     faw.Window.setEffect(
@@ -57,6 +65,13 @@ class ThemeNotifier with ChangeNotifier {
     notifyListeners();
     return true;
   }
+
+  bool setLanguage(Locale language) {
+    _language = language;
+    context.setLocale(language);
+    notifyListeners();
+    return true;
+  }
 }
 
 var lightTheme = ThemeData(
@@ -68,4 +83,3 @@ var darkTheme = ThemeData(
   colorScheme: ColorSchemes.darkRose(),
   radius: 0.5,
 );
-

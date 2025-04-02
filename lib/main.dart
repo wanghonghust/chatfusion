@@ -1,21 +1,21 @@
 import 'dart:io';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:chatfusion/dialog.dart';
-import 'package:chatfusion/notifier/theme.dart';
+import 'package:chatfusion/database/index.dart';
+import 'package:chatfusion/notifier/settings.dart';
 import 'package:chatfusion/routes.dart';
-import 'package:chatfusion/shell/nav_bar.dart';
-import 'package:chatfusion/shell/shell.dart';
-import 'package:chatfusion/tree.dart';
-import 'package:chatfusion/window.dart';
+import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_acrylic/flutter_acrylic.dart' as fa;
-import 'package:chatfusion/sheet.dart';
+import 'package:provider/provider.dart' as p;
 
 Future<void> main() async {
+  await initDatabase();
   WidgetsFlutterBinding.ensureInitialized();
+  await EasyLocalization.ensureInitialized();
   if (!Platform.isAndroid && !Platform.isIOS) {
     await fa.Window.initialize();
     fa.Window.enableShadow();
@@ -24,17 +24,32 @@ Future<void> main() async {
   if (Platform.isWindows) {
     await fa.Window.hideWindowControls();
   }
-  runApp(MultiProvider(providers: [
-    ChangeNotifierProvider(create: (context) {
-      ThemeNotifier notifier =
-          ThemeNotifier(lightTheme, context, ThemeMode.system);
-      return notifier;
-    }),
-  ], child: ChatfusionApp()));
+  await dotenv.load(fileName: ".env");
+  runApp(
+    EasyLocalization(
+      supportedLocales: [Locale('en', 'US'), Locale('zh', 'CN')],
+      path: 'assets/translations',
+      fallbackLocale: Locale('zh', 'CN'),
+      child: MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (context) {
+            SettingsNotifier notifier = SettingsNotifier(
+              lightTheme,
+              context,
+              ThemeMode.system,
+              Locale('zh', 'CN'),
+            );
+            return notifier;
+          }),
+        ],
+        child: ChatfusionApp(),
+      ),
+    ),
+  );
   if (Platform.isWindows) {
     doWhenWindowReady(() {
       appWindow
-        ..minSize = Size(400, 360)
+        ..minSize = Size(250, 360)
         ..alignment = Alignment.center
         ..show();
     });
@@ -58,13 +73,17 @@ class _ChatfusionAppState extends State<ChatfusionApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<ThemeNotifier>(builder: (context, themeNotifier, child) {
+    return p.Consumer<SettingsNotifier>(
+        builder: (context, settingsNotifier, child) {
       return ShadcnApp.router(
         routerConfig: router,
         debugShowCheckedModeBanner: false,
-        theme: themeNotifier.currentTheme,
+        theme: settingsNotifier.currentTheme,
         darkTheme: darkTheme,
-        themeMode: themeNotifier.themeMode,
+        themeMode: settingsNotifier.themeMode,
+        localizationsDelegates: context.localizationDelegates,
+        supportedLocales: context.supportedLocales,
+        locale: settingsNotifier.language,
       );
     });
   }

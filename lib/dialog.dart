@@ -1,4 +1,7 @@
+import 'package:chatfusion/widgets/textarea/index.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:flutter/material.dart' as m;
 
 class DialogPage extends StatefulWidget {
   DialogPage({super.key});
@@ -77,7 +80,86 @@ class DialogPage extends StatefulWidget {
             );
           },
           child: const Text('Edit Profile'),
-        )
+        ),
+        OutlineButton(
+          onPressed: () {
+            showPopover(
+              alignment: Alignment.bottomLeft,
+              context: context,
+              builder: (context) {
+                return const DropdownMenu(
+                  children: [
+                    MenuLabel(child: Text('My Account')),
+                    MenuDivider(),
+                    MenuButton(
+                      child: Text('Profile'),
+                    ),
+                    MenuButton(
+                      child: Text('Billing'),
+                    ),
+                    MenuButton(
+                      child: Text('Settings'),
+                    ),
+                    MenuButton(
+                      child: Text('Keyboard shortcuts'),
+                    ),
+                    MenuDivider(),
+                    MenuButton(
+                      child: Text('Team'),
+                    ),
+                    MenuButton(
+                      subMenu: [
+                        MenuButton(
+                          child: Text('Email'),
+                        ),
+                        MenuButton(
+                          child: Text('Message'),
+                        ),
+                        MenuDivider(),
+                        MenuButton(
+                          child: Text('More...'),
+                        ),
+                      ],
+                      child: Text('Invite users'),
+                    ),
+                    MenuButton(
+                      child: Text('New Team'),
+                    ),
+                    MenuDivider(),
+                    MenuButton(
+                      child: Text('GitHub'),
+                    ),
+                    MenuButton(
+                      child: Text('Support'),
+                    ),
+                    MenuButton(
+                      enabled: false,
+                      child: Text('API'),
+                    ),
+                    MenuButton(
+                      child: Text('Log out'),
+                    ),
+                  ],
+                );
+              },
+            ).future.then((_) {
+              print('Closed');
+            });
+          },
+          child: const Text('Open'),
+        ),
+        TextField(
+          style: TextStyle(fontSize: 16),
+          keyboardType: TextInputType.multiline,
+          maxLines: null,
+        ),
+        TextField(
+          placeholder: Text('Enter your username'),
+          initialValue: 'sunarya-thito',
+          features: [
+            InputFeature.revalidate(),
+          ],
+        ),
       ],
     );
   }

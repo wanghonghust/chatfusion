@@ -1,0 +1,8 @@
+{
+    "chat": "聊天",
+    "settings": "设置",
+    "new_chat": "新聊天",
+    "language": "语言",
+    "api_key_note1": "请配置正确的API Key",
+    "api_key_note2": "API Key 未设置，请前往设置页面设置 API Key，否则无法使用 Chat 功能。"
+}

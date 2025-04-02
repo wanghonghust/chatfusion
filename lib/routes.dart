@@ -1,10 +1,12 @@
 import 'package:chatfusion/dialog.dart';
-import 'package:chatfusion/main.dart';
+import 'package:chatfusion/pages/chat/index.dart';
+import 'package:chatfusion/pages/example/dropdown.dart';
+import 'package:chatfusion/pages/example/test.dart';
 import 'package:chatfusion/sheet.dart';
 import 'package:chatfusion/shell/shell.dart';
-import 'package:chatfusion/tab_pane.dart';
 import 'package:chatfusion/tree.dart';
 import 'package:chatfusion/window.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:go_router/go_router.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 
@@ -27,7 +29,7 @@ List<RouteItem> routeItems = [
   RouteItem(
     label: 'Basic',
     title: 'Home',
-    icon: Icons.home,
+    icon: RadixIcons.home,
     route: GoRoute(
       path: '/',
       pageBuilder: (context, state) =>
@@ -37,7 +39,7 @@ List<RouteItem> routeItems = [
   ),
   RouteItem(
     title: 'Tree',
-    icon: Icons.collections,
+    icon: RadixIcons.globe,
     route: GoRoute(
       path: '/tree',
       pageBuilder: (context, state) =>
@@ -48,7 +50,7 @@ List<RouteItem> routeItems = [
   RouteItem(
     label: 'Advanced',
     title: 'Sheet',
-    icon: Icons.shelves,
+    icon: RadixIcons.keyboard,
     hsaDivider: true,
     route: GoRoute(
       path: '/sheet',
@@ -58,8 +60,8 @@ List<RouteItem> routeItems = [
     ),
   ),
   RouteItem(
-    title: 'Window',
-    icon: Icons.window,
+    title: 'Win',
+    icon: RadixIcons.magicWand,
     route: GoRoute(
       path: '/window',
       pageBuilder: (context, state) =>
@@ -68,13 +70,33 @@ List<RouteItem> routeItems = [
     ),
   ),
   RouteItem(
-    title: 'Tab',
-    icon: Icons.tab,
+    title: 'Drop',
+    icon: RadixIcons.drawingPin,
     route: GoRoute(
-      path: '/tab',
+      path: '/dropdown',
       pageBuilder: (context, state) => _buildPageWithTransition(
-          child: TabPaneExample1(), key: state.pageKey),
-      name: 'tab',
+          child: DropdownMenuExample(), key: state.pageKey),
+      name: 'dropdown',
+    ),
+  ),
+  RouteItem(
+    title: 'chat'.tr(),
+    icon: BootstrapIcons.chatText,
+    route: GoRoute(
+      path: '/chat',
+      pageBuilder: (context, state) =>
+          _buildPageWithTransition(child: ChatPage(), key: state.pageKey),
+      name: 'chat',
+    ),
+  ),
+  RouteItem(
+    title: 'Test',
+    icon: RadixIcons.drawingPin,
+    route: GoRoute(
+      path: '/test',
+      pageBuilder: (context, state) =>
+          _buildPageWithTransition(child: TestPage(), key: state.pageKey),
+      name: 'test',
     ),
   ),
 ];
@@ -83,11 +105,10 @@ final List<RouteBase> routes = [
   ShellRoute(
       navigatorKey: GlobalKey<NavigatorState>(),
       builder: (context, state, child) {
-        return Scaffold(
-            child: AppShell(
+        return AppShell(
           body: child,
           items: routeItems,
-        ));
+        );
       },
       routes: routeItems.map((e) => e.route).toList())
 ];
@@ -100,7 +121,7 @@ Page<void> _buildPageWithTransition(
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
       return SlideTransition(
         position: Tween<Offset>(
-          begin: const Offset(0, -1),
+          begin: const Offset(-1, 0),
           end: Offset.zero,
         ).animate(animation),
         child: child,

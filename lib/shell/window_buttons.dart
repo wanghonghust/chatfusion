@@ -1,7 +1,8 @@
 import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:chatfusion/notifier/theme.dart';
+import 'package:chatfusion/notifier/settings.dart';
+import 'package:chatfusion/widgets/svg_icon.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
 import 'package:provider/provider.dart';
 
@@ -13,7 +14,7 @@ class WindowButtons extends StatefulWidget {
 }
 
 class _WindowButtonsState extends State<WindowButtons> {
-  ThemeNotifier? themeNotifier;
+  SettingsNotifier? settingsNotifier;
   void maximizeOrRestore() {
     setState(() {
       appWindow.maximizeOrRestore();
@@ -25,6 +26,7 @@ class _WindowButtonsState extends State<WindowButtons> {
       appWindow.minimize();
     });
   }
+
   void close() {
     setState(() {
       appWindow.close();
@@ -33,7 +35,7 @@ class _WindowButtonsState extends State<WindowButtons> {
 
   @override
   void didChangeDependencies() {
-    themeNotifier = Provider.of<ThemeNotifier>(context);
+    settingsNotifier = Provider.of<SettingsNotifier>(context);
     super.didChangeDependencies();
   }
 
@@ -41,14 +43,14 @@ class _WindowButtonsState extends State<WindowButtons> {
   Widget build(BuildContext context) {
     final Brightness brightness = Theme.of(context).brightness;
     final buttonColors = WindowButtonColors(
-      iconNormal: themeNotifier!.isDarkMode ? Colors.white : Colors.black,
-      iconMouseDown: themeNotifier!.isDarkMode ? Colors.white : Colors.black,
-      iconMouseOver: themeNotifier!.isDarkMode ? Colors.white : Colors.black,
+      iconNormal: settingsNotifier!.isDarkMode ? Colors.white : Colors.black,
+      iconMouseDown: settingsNotifier!.isDarkMode ? Colors.white : Colors.black,
+      iconMouseOver: settingsNotifier!.isDarkMode ? Colors.white : Colors.black,
       normal: Colors.transparent,
-      mouseOver: themeNotifier!.isDarkMode
+      mouseOver: settingsNotifier!.isDarkMode
           ? Colors.white.withAlpha(20)
           : Colors.black.withAlpha(20),
-      mouseDown: themeNotifier!.isDarkMode
+      mouseDown: settingsNotifier!.isDarkMode
           ? Colors.white.withAlpha(40)
           : Colors.black.withAlpha(40),
     );
@@ -68,22 +70,35 @@ class _WindowButtonsState extends State<WindowButtons> {
         IconButton.ghost(
           onPressed: minimize,
           density: ButtonDensity.icon,
-          icon: const Icon(RadixIcons.minus),
+          icon: SvgIcon(
+                  'assets/svg/minimize.svg',
+                  size: 18,
+                ),
         ),
         appWindow.isMaximized
             ? IconButton.ghost(
                 onPressed: maximizeOrRestore,
                 density: ButtonDensity.icon,
-                icon: const Icon(RadixIcons.exitFullScreen),
+                icon: SvgIcon(
+                  'assets/svg/unmaximize.svg',
+                  size: 18,
+                ),
               )
             : IconButton.ghost(
                 onPressed: maximizeOrRestore,
                 density: ButtonDensity.icon,
-                icon: const Icon(RadixIcons.enterFullScreen)),
+                icon: SvgIcon(
+                  'assets/svg/maximize.svg',
+                  size: 18,
+                ),
+              ),
         IconButton.ghost(
             onPressed: close,
             density: ButtonDensity.icon,
-            icon: const Icon(RadixIcons.cross2)),
+            icon: SvgIcon(
+                  'assets/svg/close.svg',
+                  size: 18,
+                ),),
       ],
     );
   }
