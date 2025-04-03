@@ -152,7 +152,7 @@ const blockDarkTheme = {
 const atomOneLightTheme = {
   'root': TextStyle(
       color: Color(0xff383a42),
-      backgroundColor: Color.fromARGB(76, 250, 250, 250)),
+      backgroundColor: Color.fromARGB(48, 220, 220, 220)),
   'comment': TextStyle(color: Color(0xffa0a1a7), fontStyle: FontStyle.italic),
   'quote': TextStyle(color: Color(0xffa0a1a7), fontStyle: FontStyle.italic),
   'doctag': TextStyle(color: Color(0xffa626a4)),
