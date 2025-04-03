@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:chatfusion/database/index.dart';
 import 'package:chatfusion/notifier/settings.dart';
+import 'package:chatfusion/pages/chat/controller.dart';
 import 'package:chatfusion/routes.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -41,6 +42,7 @@ Future<void> main() async {
             );
             return notifier;
           }),
+          ChangeNotifierProvider(create: (_) => ChatController())
         ],
         child: ChatfusionApp(),
       ),

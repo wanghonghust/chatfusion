@@ -110,22 +110,14 @@ class _SettingsPageState extends State<SettingsPage> {
               children: [
                 RadioCard<Locale>(
                   value: Locale('zh', 'CN'),
-                  child: Basic(
-                    padding: EdgeInsets.all(5),
-                    title: Text('中国'),
-                    content: Text('简体中文'),
-                  ),
+                  child: Text('简体中文'),
                 ),
                 RadioCard<Locale>(
                   value: Locale('en', 'US'),
-                  child: Basic(
-                    padding: EdgeInsets.all(5),
-                    title: Text('The United States of America'),
-                    content: Text('English'),
-                  ),
+                  child: Text('English'),
                 ),
               ],
-            ).gap(12),
+            ).gap(10),
           )
         ],
       ),

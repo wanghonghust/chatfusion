@@ -3,6 +3,7 @@
   "settings": "Settings",
   "new_chat": "New Chat",
   "language": "Language",
+  "chat_placeholder": "Type your message here...",
   "api_key_note1": "Please configure the correct API Key",
   "api_key_note2": "API Key is not set. Please go to the settings page to set API Key. Otherwise, you will not be able to use the Chat function."
 }

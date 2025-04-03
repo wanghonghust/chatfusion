@@ -1,7 +1,12 @@
 import 'package:chatfusion/notifier/settings.dart';
+import 'package:chatfusion/pages/chat/chip_toggle.dart';
+import 'package:chatfusion/widgets/svg_icon.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' as m;
 
 class ChatInput extends StatefulWidget {
@@ -11,11 +16,13 @@ class ChatInput extends StatefulWidget {
   bool done;
   void Function(String)? onSubmit;
   void Function(String?)? onModelChange;
+  void Function(bool)? onAutoScrollChange;
   ChatInput({
     super.key,
     required this.maxWidth,
     this.onSubmit,
     this.onModelChange,
+    this.onAutoScrollChange,
     this.model,
     this.supportModels,
     this.done = false,
@@ -31,6 +38,7 @@ class _ChatInputState extends State<ChatInput> {
   bool think = false;
   String? model;
   bool focused = false;
+  bool autoScroll = true;
 
   @override
   void initState() {
@@ -57,51 +65,39 @@ class _ChatInputState extends State<ChatInput> {
           spacing: 10,
           runSpacing: 10,
           children: [
-            Chip(
-              style: think
-                  ? const ButtonStyle.primary()
-                  : const ButtonStyle.outline(),
-              child: ChipButton(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(think
-                        ? BootstrapIcons.lightbulbFill
-                        : BootstrapIcons.lightbulbOffFill),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text("深度思考")
-                  ],
-                ),
-                onPressed: () {
-                  setState(() {
-                    think = !think;
-                  });
-                },
-              ),
+            ChipToggle(
+              value: think,
+              icon: Icon(think
+                  ? BootstrapIcons.lightbulbFill
+                  : BootstrapIcons.lightbulbOffFill),
+              onPressed: () {
+                setState(() {
+                  think = !think;
+                });
+              },
+              child: Text("深度思考"),
             ),
-            Chip(
-              style: network
-                  ? const ButtonStyle.primary()
-                  : const ButtonStyle.outline(),
-              child: ChipButton(
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(BootstrapIcons.globe),
-                    SizedBox(
-                      width: 5,
-                    ),
-                    Text("联网搜索")
-                  ],
-                ),
-                onPressed: () {
-                  setState(() {
-                    network = !network;
-                  });
-                },
-              ),
+            ChipToggle(
+              value: network,
+              icon: Icon(network ? LucideIcons.globe : LucideIcons.globeLock),
+              onPressed: () {
+                setState(() {
+                  network = !network;
+                });
+              },
+              child: Text("联网搜索"),
+            ),
+            ChipToggle(
+              value: autoScroll,
+              icon: Icon(autoScroll
+                  ? BootstrapIcons.lightbulbFill
+                  : BootstrapIcons.lightbulbOffFill),
+              onPressed: () {
+                setState(() {
+                  autoScroll = !autoScroll;
+                });
+              },
+              child: Text("自动滚动"),
             ),
             _buildModelWidget()
           ],
@@ -110,7 +106,7 @@ class _ChatInputState extends State<ChatInput> {
         Card(
           borderColor: focused
               ? Theme.of(context).colorScheme.primary
-              : Colors.transparent,
+              : Theme.of(context).colorScheme.border,
           child: IntrinsicHeight(
               child: Container(
             constraints: BoxConstraints(maxHeight: 200),
@@ -146,7 +142,7 @@ class _ChatInputState extends State<ChatInput> {
                       border: false,
                       controller: textEditingController,
                       placeholder: Text(
-                        "Type your message here...",
+                        'chat_placeholder'.tr(),
                       ),
                       style: TextStyle(fontSize: 16),
                       keyboardType: TextInputType.multiline,
@@ -158,6 +154,7 @@ class _ChatInputState extends State<ChatInput> {
                             child: Button(
                               onPressed: sendMessage,
                               style: ButtonStyle.outlineIcon(
+                                size: ButtonSize.xSmall,
                                 shape: ButtonShape.circle,
                               ).withBorder(
                                 border: Border.all(
@@ -174,12 +171,12 @@ class _ChatInputState extends State<ChatInput> {
                                 builder: (context, value, child) {
                                   return Transform.scale(
                                     scale: value,
-                                    child: Icon(
+                                    child: SvgIcon(
                                       color:
                                           Theme.of(context).colorScheme.primary,
                                       widget.done
-                                          ? BootstrapIcons.fastForwardFill
-                                          : BootstrapIcons.stopFill,
+                                          ? "assets/svg/send.svg"
+                                          : "assets/svg/stop.svg",
                                     ),
                                   );
                                 },

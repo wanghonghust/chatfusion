@@ -2,16 +2,23 @@ import 'dart:async';
 
 import 'package:chatfusion/database/models/conversation.dart';
 import 'package:chatfusion/database/models/message.dart';
+import 'package:chatfusion/notifier/settings.dart';
 import 'package:chatfusion/pages/chat/chat_input.dart';
+import 'package:chatfusion/pages/chat/controller.dart';
 import 'package:chatfusion/pages/chat/history.dart';
 import 'package:chatfusion/pages/chat/history_list.dart';
 import 'package:chatfusion/pages/settings/api_key.dart';
+import 'package:chatfusion/shell/screen_size.dart'
+    show ScreenSize, getScreenSize;
 import 'package:chatfusion/utils/item.dart';
 import 'package:chatfusion/widgets/dialog.dart';
+import 'package:chatfusion/widgets/svg_icon.dart';
 import 'package:dart_openai/dart_openai.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:provider/provider.dart' as p;
+import 'package:flutter/material.dart' show Consumer;
 
 const Map<String, String> supportModels = {
   "qwen-max-latest": "通义千问-Max-Latest",
@@ -29,7 +36,6 @@ class ChatPage extends StatefulWidget {
 }
 
 class _ChatPageState extends State<ChatPage> {
-  Conversation? conversation;
   String? model;
   List<Widget> items = [];
   bool done = true;
@@ -41,11 +47,11 @@ class _ChatPageState extends State<ChatPage> {
   bool selectModel = false;
   bool isThinking = false;
   StreamSubscription? subscription;
-  List<Conversation> histories = [];
   StringBuffer responseBuffer = StringBuffer();
   StringBuffer thinkBuffer = StringBuffer();
   Message? userMsg;
   final FlutterSecureStorage _storage = FlutterSecureStorage();
+  ChatController? controller;
   String? apiKey;
   @override
   void initState() {
@@ -55,124 +61,173 @@ class _ChatPageState extends State<ChatPage> {
     getHistory();
   }
 
+  @override
+  void dispose() {
+    subscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    controller = p.Provider.of<ChatController>(context, listen: true);
+  }
+
   void getHistory() async {
     var res = await Conversation.getConversations(asc: false);
-    setState(() {
-      histories = res;
-    });
+    controller!.histories = res;
   }
 
   @override
   Widget build(BuildContext context) {
-    return ResizablePanel.horizontal(
-      draggerBuilder: (context) {
-        return const HorizontalResizableDragger();
-      },
+    ScreenSize screenSize = getScreenSize(context);
+    return Row(
       children: [
-        ResizablePane(
-          initialSize: 150,
-          minSize: 120,
-          maxSize: 250,
-          child: Container(
-            margin: EdgeInsets.only(top: 0, right: 0, bottom: 0),
-            child: HistoryList(
-              histories: histories,
-              selected: conversation,
-              onSelected: (conversation) {
-                setState(() {
-                  this.conversation = conversation;
-                });
-                getConversationMessages();
-              },
-              onRenameDone: (conversation) {
-                getHistory();
-              },
-              onNewConversation: () {
-                if (conversation == null) {
-                  showToast(
-                    context: context,
-                    showDuration: Duration(seconds: 2),
-                    builder: (context, overlay) {
-                      return SurfaceCard(
-                        borderColor: Theme.of(context).colorScheme.primary,
-                        child: Basic(
-                          leading: Icon(BootstrapIcons.info),
-                          title: const Text('已在新对话中'),
-                          trailingAlignment: Alignment.center,
-                        ),
-                      );
-                    },
-                    location: ToastLocation.topRight,
-                  );
-                  return;
-                }
-                setState(() {
-                  conversation = null;
-                });
-                getConversationMessages();
-              },
-              onDeleteConversation: (conversation) {
-                if (conversation == this.conversation) {
-                  setState(() {
-                    this.conversation = null;
-                  });
-                }
-                getHistory();
-                getConversationMessages();
-              },
-            ),
+        if (screenSize != ScreenSize.small)
+          SizedBox(
+            width: 120,
+            child: buildHistoryList(context, screenSize),
           ),
-        ),
-        ResizablePane.flex(
-          minSize: 350,
-          child: Padding(
-            padding: EdgeInsets.all(5),
-            child: Column(
-              children: [
-                Padding(
-                  padding: EdgeInsets.all(5),
-                  child: Text(conversation != null
-                          ? conversation!.title
-                          : 'new_chat'.tr())
-                      .h4,
-                ),
-                Expanded(
-                  child: History(
-                    messages: orderedMessages,
-                    scrollController: _msgScrollController,
-                  ),
-                ),
-                ChatInput(
-                  maxWidth: 500,
-                  supportModels: supportModels,
-                  onSubmit: (msg) {
-                    chat(context, msg);
-                  },
-                  model: model,
-                  done: done,
-                  onModelChange: (v) {
-                    setState(() {
-                      model = v;
-                    });
-                  },
-                ),
-              ],
-            ),
-          ),
+        Expanded(
+          child: buildChatView(context, screenSize),
         ),
       ],
     );
   }
 
+  Widget buildChatView(BuildContext context, ScreenSize screenSize) {
+    return Padding(
+      padding: EdgeInsets.all(5),
+      child: Stack(children: [
+        if (screenSize == ScreenSize.small)
+          Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            IconButton.ghost(
+              icon: SvgIcon(
+                "assets/svg/message-add.svg",
+                size: 24,
+              ),
+              onPressed: onNewConversation,
+            ),
+            IconButton.ghost(
+              icon: SvgIcon(
+                "assets/svg/history.svg",
+                size: 24,
+              ),
+              onPressed: () => openHistoryDrawer(context, screenSize),
+            ),
+          ]),
+        Column(
+          children: [
+            Padding(
+              padding: EdgeInsets.all(5),
+              child: Text(
+                controller!.conversation != null
+                    ? controller!.conversation!.title
+                    : 'new_chat'.tr(),
+              ).bold,
+            ),
+            Expanded(
+              child: History(
+                messages: orderedMessages,
+                scrollController: _msgScrollController,
+              ),
+            ),
+            ChatInput(
+              maxWidth: 500,
+              supportModels: supportModels,
+              onSubmit: (msg) {
+                chat(context, msg);
+              },
+              onAutoScrollChange: (v) {
+                setState(() {
+                  autoScroll = v;
+                });
+              },
+              model: model,
+              done: done,
+              onModelChange: (v) {
+                setState(() {
+                  model = v;
+                });
+              },
+            ),
+          ],
+        )
+      ]),
+    );
+  }
+
+  void openHistoryDrawer(BuildContext context, ScreenSize screenSize) {
+    openSheet(
+      context: context,
+      transformBackdrop: false,
+      builder: (context) {
+        return buildHistoryList(context, screenSize);
+      },
+      position: OverlayPosition.right,
+    );
+  }
+
+  Widget buildHistoryList(BuildContext context, ScreenSize screenSize) {
+    return Container(
+      width: screenSize == ScreenSize.small ? 150 : null,
+      margin: EdgeInsets.only(top: 0, right: 0, bottom: 0),
+      child: HistoryList(
+        onSelected: (conversation) {
+          controller!.conversation = conversation;
+          getConversationMessages();
+        },
+        onRenameDone: (conversation) {
+          getHistory();
+        },
+        onNewConversation:
+            screenSize == ScreenSize.small ? null : onNewConversation,
+        onDeleteConversation: (conversation) {
+          if (conversation == controller!.conversation) {
+            controller!.conversation = null;
+          }
+          getHistory();
+          getConversationMessages();
+        },
+      ),
+    );
+  }
+
+  void onNewConversation() {
+    if (controller!.conversation == null) {
+      showToast(
+        context: context,
+        showDuration: Duration(seconds: 2),
+        builder: (context, overlay) {
+          return SurfaceCard(
+            child: Basic(
+              leading: Icon(BootstrapIcons.info),
+              title: const Text('已在新对话中'),
+              trailingAlignment: Alignment.center,
+            ),
+          );
+        },
+        location: ToastLocation.topRight,
+      );
+      return;
+    }
+    if (subscription != null) {
+      subscription!.cancel();
+      done = true;
+    }
+    controller!.conversation = null;
+    getConversationMessages();
+  }
+
   void getConversationMessages() async {
-    if (conversation == null) {
+    if (controller!.conversation == null) {
       setState(() {
         orderedMessages = [];
       });
       return;
     }
     List<Message> messages =
-        await Message.getConversationMessage(conversation!.id!);
+        await Message.getConversationMessage(controller!.conversation!.id!);
     setState(
       () {
         orderedMessages = messages;
@@ -200,16 +255,17 @@ class _ChatPageState extends State<ChatPage> {
         subscription = null;
       });
       await Message.insertMessage(userMsg!);
-
-      Message assistantMsg = Message(
-          content: responseBuffer.toString(),
-          thinkContent: thinkBuffer.toString(),
-          conversationId: conversation!.id!,
-          role: 1,
-          model: chatModel);
-      await Message.insertMessage(assistantMsg);
-      thinkBuffer.clear();
-      responseBuffer = StringBuffer();
+      if (controller!.conversation != null) {
+        Message assistantMsg = Message(
+            content: responseBuffer.toString(),
+            thinkContent: thinkBuffer.toString(),
+            conversationId: controller!.conversation!.id!,
+            role: 1,
+            model: chatModel);
+        await Message.insertMessage(assistantMsg);
+        thinkBuffer.clear();
+        responseBuffer = StringBuffer();
+      }
       return;
     }
     // 配置apiKey
@@ -256,7 +312,6 @@ class _ChatPageState extends State<ChatPage> {
           showDuration: Duration(seconds: 2),
           builder: (context, overlay) {
             return SurfaceCard(
-              borderColor: Theme.of(context).colorScheme.primary,
               child: Basic(
                 leading: Icon(BootstrapIcons.exclamationCircle),
                 content: Text("请选择模型并输入内容"),
@@ -268,21 +323,24 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       done = false;
     });
-    if (conversation == null) {
-      conversation = Conversation(title: message);
-      int id = await conversation!.save();
-      conversation = Conversation(id: id, title: conversation!.title);
-      if (conversation!.id == null) {
+    if (controller!.conversation == null) {
+      controller!.conversation = Conversation(title: message);
+      int id = await controller!.conversation!.save();
+      controller!.conversation =
+          Conversation(id: id, title: controller!.conversation!.title);
+      if (controller!.conversation!.id == null) {
         return;
       }
-      setState(() {
-        histories = [conversation!, ...histories];
-        conversation = conversation;
-      });
+
+      controller!.histories = [
+        controller!.conversation!,
+        ...controller!.histories
+      ];
+      controller!.conversation = controller!.conversation;
     }
     userMsg = Message(
         content: message,
-        conversationId: conversation!.id!,
+        conversationId: controller!.conversation!.id!,
         role: 0,
         model: model!);
     setState(() {
@@ -310,77 +368,87 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       orderedMessages.add(Message(
           content: "",
-          conversationId: conversation!.id!,
+          conversationId: controller!.conversation!.id!,
           role: 1,
           model: chatModel));
     });
-    subscription = chatStream.listen(
-      (streamChatCompletion) {
-        final content = streamChatCompletion.choices.first.delta.content;
-        content?.forEach((item) {
-          if (item != null) {
-            messages = getCurrentModelMessages(chatModel);
-            var text = item.text;
-            if (text!.contains(RegExp("<think>"))) {
-              setState(() {
-                isThinking = true;
-              });
-              text = text.replaceFirst(RegExp("<think>"), "");
-              thinkBuffer.write(text);
-            } else if (text.contains("</think>")) {
-              setState(() {
-                isThinking = false;
-              });
-              var parts = text.split("</think>");
-              if (parts.length == 2) {
-                if (parts[1].trim().isNotEmpty) {
-                  thinkBuffer.write(parts[0]);
-                } else {
-                  thinkBuffer.write(parts[0]);
-                  responseBuffer.write(parts[1]);
-                }
-              }
-            } else {
-              if (isThinking) {
-                thinkBuffer.write(text);
+    subscription = chatStream.listen((streamChatCompletion) {
+      final content = streamChatCompletion.choices.first.delta.content;
+      content?.forEach((item) {
+        if (item != null) {
+          messages = getCurrentModelMessages(chatModel);
+          var text = item.text;
+          if (text!.contains(RegExp("<think>"))) {
+            setState(() {
+              isThinking = true;
+            });
+            text = text.replaceFirst(RegExp("<think>"), "");
+            thinkBuffer.write(text);
+          } else if (text.contains("</think>")) {
+            setState(() {
+              isThinking = false;
+            });
+            var parts = text.split("</think>");
+            if (parts.length == 2) {
+              if (parts[1].trim().isNotEmpty) {
+                thinkBuffer.write(parts[0]);
               } else {
-                responseBuffer.write(text);
-              }
-              Message assistantMsg = Message(
-                  content: responseBuffer.toString(),
-                  thinkContent: thinkBuffer.toString().trim().isEmpty
-                      ? null
-                      : thinkBuffer.toString(),
-                  conversationId: conversation!.id!,
-                  role: 1,
-                  model: chatModel);
-              setState(() {
-                orderedMessages[orderedMessages.length - 1] = assistantMsg;
-              });
-              if (autoScroll) {
-                _msgScrollController
-                    .jumpTo(_msgScrollController.position.maxScrollExtent);
+                thinkBuffer.write(parts[0]);
+                responseBuffer.write(parts[1]);
               }
             }
+          } else {
+            if (isThinking) {
+              thinkBuffer.write(text);
+            } else {
+              responseBuffer.write(text);
+            }
+            Message assistantMsg = Message(
+                content: responseBuffer.toString(),
+                thinkContent: thinkBuffer.toString().trim().isEmpty
+                    ? null
+                    : thinkBuffer.toString(),
+                conversationId: controller!.conversation!.id!,
+                role: 1,
+                model: chatModel);
+            setState(() {
+              orderedMessages[orderedMessages.length - 1] = assistantMsg;
+            });
+            if (autoScroll) {
+              _msgScrollController
+                  .jumpTo(_msgScrollController.position.maxScrollExtent);
+            }
           }
-        });
-      },
-      onDone: () async {
-        await Message.insertMessage(userMsg!);
-        Message assistantMsg = Message(
-            content: responseBuffer.toString(),
-            thinkContent: thinkBuffer.toString(),
-            conversationId: conversation!.id!,
-            role: 1,
-            model: chatModel);
-        await Message.insertMessage(assistantMsg);
-        setState(() {
-          done = true;
-          subscription = null;
-        });
-        thinkBuffer.clear();
-        responseBuffer.clear();
-      },
-    );
+        }
+      });
+    }, onDone: () async {
+      await Message.insertMessage(userMsg!);
+      Message assistantMsg = Message(
+          content: responseBuffer.toString(),
+          thinkContent: thinkBuffer.toString(),
+          conversationId: controller!.conversation!.id!,
+          role: 1,
+          model: chatModel);
+      await Message.insertMessage(assistantMsg);
+      setState(() {
+        done = true;
+        subscription = null;
+      });
+      thinkBuffer.clear();
+      responseBuffer.clear();
+    }, onError: (error) {
+      showToast(
+        context: context,
+        location: ToastLocation.topCenter,
+        showDuration: Duration(seconds: 2),
+        builder: (context, overlay) {
+          return Alert.destructive(
+            title: Text('错误'),
+            content: Text(error.toString()),
+            trailing: Icon(Icons.dangerous_outlined),
+          );
+        },
+      );
+    });
   }
 }

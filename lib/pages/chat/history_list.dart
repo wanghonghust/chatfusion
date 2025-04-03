@@ -1,9 +1,14 @@
 import 'package:chatfusion/database/models/conversation.dart';
+import 'package:chatfusion/pages/chat/controller.dart';
+import 'package:chatfusion/shell/screen_size.dart'
+    show ScreenSize, getScreenSize;
+import 'package:chatfusion/widgets/svg_icon.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart' show InkWell;
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:shadcn_flutter/shadcn_flutter.dart';
+import 'package:provider/provider.dart';
 
 class GroupedConversation {
   final String title;
@@ -13,17 +18,13 @@ class GroupedConversation {
 
 class HistoryList extends StatefulWidget {
   final Function(Conversation conversation)? onSelected;
-  final Conversation? selected;
   final VoidCallback? onNewConversation;
   final Function(Conversation)? onDeleteConversation;
   final Function(Conversation)? onRenameDone;
-  final List<Conversation> histories;
   const HistoryList({
     super.key,
     this.onSelected,
     this.onRenameDone,
-    required this.histories,
-    this.selected,
     this.onNewConversation,
     this.onDeleteConversation,
   });
@@ -34,32 +35,47 @@ class HistoryList extends StatefulWidget {
 
 class _HistoryListState extends State<HistoryList> {
   int hoverindex = -1;
-  Conversation? renameConversation;
+  ChatController? controller;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    controller = Provider.of<ChatController>(context, listen: true);
+  }
 
   @override
   Widget build(BuildContext context) {
+    ScreenSize screenSize = getScreenSize(context);
     return LayoutBuilder(builder: (context, constraints) {
       return Card(
+        borderColor: screenSize == ScreenSize.small ? Colors.transparent : null,
         padding: EdgeInsets.all(5),
         borderRadius: BorderRadius.zero,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            TextButton(
-              size: ButtonSize.xSmall,
-              onPressed: widget.onNewConversation,
-              trailing: const Icon(BootstrapIcons.plus),
-              child: const Text(
-                '新建对话',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  overflow: TextOverflow.ellipsis,
+            if (widget.onNewConversation != null)
+              TextButton(
+                size: ButtonSize.xSmall,
+                onPressed: widget.onNewConversation,
+                trailing: SvgIcon(
+                  "assets/svg/message-add.svg",
+                  size: 18,
+                ),
+                child: const Text(
+                  '新建对话',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
               ),
-            ),
-            Divider(),
-            Expanded(child: _buildList(widget.histories)),
+            if (widget.onNewConversation != null) Divider(),
+            Text('历史对话',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold))
+                .mono,
+            Expanded(child: _buildList(controller!.histories)),
           ],
         ),
       );
@@ -68,7 +84,6 @@ class _HistoryListState extends State<HistoryList> {
 
   Widget _buildList(List<Conversation> items) {
     var groupedItems = _groupItemsByDate(items);
-
     return ListView.builder(
       itemBuilder: (context, index) {
         var item = groupedItems[index];
@@ -76,19 +91,15 @@ class _HistoryListState extends State<HistoryList> {
         item.conversations.forEach((ele) {
           groupWidgetItems.add(NavItem(
             conversation: ele,
-            isEditing: renameConversation == ele,
-            selected: widget.selected == ele,
+            isEditing: controller!.renameConversation == ele,
+            selected: controller!.conversation == ele,
             onFocusChange: (value) {
               if (!value) {
-                setState(() {
-                  renameConversation = null;
-                });
+                controller!.renameConversation = null;
               }
             },
             onRenameDone: (value) {
-              setState(() {
-                renameConversation = null;
-              });
+              controller!.renameConversation = null;
               if (widget.onRenameDone != null) {
                 widget.onRenameDone!(ele);
               }
@@ -145,9 +156,7 @@ class _HistoryListState extends State<HistoryList> {
               leading: Icon(BootstrapIcons.replyFill),
               child: Text('重命名'),
               onPressed: (context) {
-                setState(() {
-                  renameConversation = conversation;
-                });
+                controller!.renameConversation = conversation;
               },
             ),
             MenuButton(
@@ -295,11 +304,11 @@ class _NavItemState extends State<NavItem> {
                     : Colors.transparent)),
         child: widget.isEditing
             ? TextField(
-                style: TextStyle(fontSize: 12),
+                style: TextStyle(fontSize: 14),
                 focusNode: _focusNode,
                 autofocus: true,
                 controller: _controller,
-                padding: EdgeInsets.symmetric(vertical: 5, horizontal: 10),
+                padding: EdgeInsets.symmetric(vertical: 6, horizontal: 10),
                 trailing: IconButton.ghost(
                   size: ButtonSize.xSmall,
                   icon: Icon(Icons.check),
@@ -340,7 +349,7 @@ class _NavItemState extends State<NavItem> {
                         maxLines: 1,
                         widget.conversation.title,
                         style: TextStyle(
-                            fontSize: 12, overflow: TextOverflow.ellipsis),
+                            fontSize: 14, overflow: TextOverflow.ellipsis),
                       ),
                     ),
                     if (hover)

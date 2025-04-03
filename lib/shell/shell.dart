@@ -56,7 +56,7 @@ class _AppShellState extends State<AppShell> {
   Widget build(BuildContext context) {
     ScreenSize screenSize = getScreenSize(context);
     return Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: settingsNotifier!.isDesktop ? Colors.transparent : null,
       headers: [
         SafeArea(
           child: TitleBar(
@@ -66,10 +66,12 @@ class _AppShellState extends State<AppShell> {
                 _openDrawer(context, screenSize);
               },
               child: SvgIcon(
-                size: 18,
-                expanded
-                    ? "assets/svg/hide-sidebar-horiz.svg"
-                    : "assets/svg/show-sidebar-horiz.svg",
+                size: 20,
+                settingsNotifier!.isDesktop
+                    ? expanded
+                        ? "assets/svg/hide-sidebar-horiz.svg"
+                        : "assets/svg/show-sidebar-horiz.svg"
+                    : "assets/svg/menu.svg",
               ),
             ),
           ),
@@ -98,7 +100,7 @@ class _AppShellState extends State<AppShell> {
       case ScreenSize.small:
         openDrawer(
           context: context,
-          // barrierColor: Colors.transparent,
+          borderRadius: BorderRadius.zero,
           expands: true,
           transformBackdrop: false,
           showDragHandle: true,
@@ -138,15 +140,26 @@ class TitleBar extends StatefulWidget {
 }
 
 class _TitleBarState extends State<TitleBar> {
+  SettingsNotifier? settingsNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    settingsNotifier = Provider.of<SettingsNotifier>(context, listen: false);
+  }
+
   @override
   Widget build(BuildContext context) {
+    ScreenSize screenSize = getScreenSize(context);
     return Container(
         alignment: Alignment.center,
         decoration: BoxDecoration(
             color: Theme.of(context).colorScheme.card,
-            border: Border(
-                bottom:
-                    BorderSide(color: Theme.of(context).colorScheme.border))),
+            border: settingsNotifier!.isDesktop
+                ? Border(
+                    bottom:
+                        BorderSide(color: Theme.of(context).colorScheme.border))
+                : null),
         height: 40,
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
@@ -154,7 +167,7 @@ class _TitleBarState extends State<TitleBar> {
             if (widget.leading != null) widget.leading!,
             Expanded(child: MoveWindow()),
             IconButton.ghost(
-              onPressed: showSettings,
+              onPressed: () => showSettings(screenSize),
               density: ButtonDensity.icon,
               icon: Icon(BootstrapIcons.gearWideConnected),
             ),
@@ -165,43 +178,60 @@ class _TitleBarState extends State<TitleBar> {
                 icon: Icon(BootstrapIcons.personGear),
               );
             }),
-            WindowButtons()
+            if (settingsNotifier!.isDesktop) WindowButtons()
           ],
         ));
   }
 
-  void showSettings() {
-    showDialog(
-      context: context,
-      builder: (context) {
-        final FormController controller = FormController();
-        return AlertDialog(
-          padding: EdgeInsets.all(5),
-          title: Row(
-            children: [
-              Expanded(
-                  child: Row(
-                children: [
-                  Icon(BootstrapIcons.gearWideConnected),
-                  SizedBox(
-                    width: 10,
-                  ),
-                  Text('settings'.tr()),
-                ],
-              )),
-              IconButton.ghost(
-                onPressed: () {
-                  Navigator.of(context).pop(controller.values);
-                },
-                shape: ButtonShape.circle,
-                icon: const Icon(BootstrapIcons.x),
-              ),
-            ],
-          ),
-          content: SettingsPage(),
-        );
-      },
-    );
+  void showSettings(ScreenSize screenSize) {
+    if (screenSize == ScreenSize.small) {
+      openDrawer(
+        context: context,
+        borderRadius: BorderRadius.zero,
+        expands: true,
+        transformBackdrop: false,
+        showDragHandle: true,
+        builder: (context) {
+          return Padding(
+            padding: EdgeInsets.all(10),
+            child: SettingsPage(),
+          );
+        },
+        position: OverlayPosition.bottom,
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (context) {
+          final FormController controller = FormController();
+          return AlertDialog(
+            padding: EdgeInsets.all(5),
+            title: Row(
+              children: [
+                Expanded(
+                    child: Row(
+                  children: [
+                    Icon(BootstrapIcons.gearWideConnected),
+                    SizedBox(
+                      width: 10,
+                    ),
+                    Text('settings'.tr()),
+                  ],
+                )),
+                IconButton.ghost(
+                  onPressed: () {
+                    Navigator.of(context).pop(controller.values);
+                  },
+                  shape: ButtonShape.circle,
+                  icon: const Icon(BootstrapIcons.x),
+                ),
+              ],
+            ),
+            content: SettingsPage(),
+          );
+        },
+      );
+    }
   }
 
   void showUserDropDown(BuildContext context) {

@@ -52,7 +52,7 @@ class _ApiKeySettingsPageState extends State<ApiKeySettingsPage> {
             rows: [
               FormField<String>(
                 key: _apiKeyKey,
-                label: const Text('API Key'),
+                label: SizedBox.shrink(),
                 validator: ValidationMode(
                   ConditionalValidator((value) {
                     return value!.startsWith("sk-");

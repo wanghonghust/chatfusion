@@ -64,6 +64,7 @@ class _NavBarState extends State<NavBar> {
       children: [
         Expanded(
             child: Container(
+              color: theme.colorScheme.card,
           width: widget.isDrawer! ? 150 : null,
           alignment: Alignment.topLeft,
           margin: widget.isDrawer! ? EdgeInsets.zero : EdgeInsets.all(0),
